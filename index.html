@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PharmaPlus — Smart Pharmacy System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="./CSS/style.css" />
+  <link  rel="icon" href="./imgs/logo.png">
+
+</head>
+<body>
+
+<!-- ============================================================
+     LOGIN SCREEN (shown on first visit)
+============================================================ -->
+<div id="login-screen" class="login-screen hidden">
+  <div class="login-card">
+    <div class="login-logo">
+      <i class="fa-solid fa-prescription-bottle-medical"></i>
+      <h1>PharmaPlus</h1>
+      <p>Smart Pharmacy System</p>
+    </div>
+    <div class="login-tabs">
+      <button class="login-tab active" data-role="staff" onclick="switchLoginTab('staff')">
+        <i class="fa-solid fa-user-doctor"></i> Staff
+      </button>
+      <button class="login-tab" data-role="customer" onclick="switchLoginTab('customer')">
+        <i class="fa-solid fa-user"></i> Customer
+      </button>
+    </div>
+    <form id="login-form" onsubmit="handleLogin(event)">
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" id="login-username" placeholder="Enter username" required />
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="login-password" placeholder="Enter password" required />
+      </div>
+      <div class="login-hint" id="login-hint">
+        Staff: admin / admin123 &nbsp;|&nbsp; Customer: user / user123
+      </div>
+      <button type="submit" class="btn-login">
+        <i class="fa-solid fa-right-to-bracket"></i> Sign In
+      </button>
+    </form>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     DESKTOP APP — System Dashboard (shown on desktop)
+============================================================ -->
+<div id="desktop-app" class="desktop-app hidden">
+
+  <!-- Sidebar Navigation -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <i class="fa-solid fa-prescription-bottle-medical"></i>
+      <span>PharmaPlus</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-item active" data-section="pos" onclick="showSection('pos', this)">
+        <i class="fa-solid fa-cash-register"></i><span>System</span>
+      </a>
+      <a href="#" class="nav-item" data-section="orders" onclick="showSection('orders', this)">
+        <i class="fa-solid fa-clipboard-list"></i><span>Orders</span>
+        <span class="nav-badge" id="orders-badge">0</span>
+      </a>
+      <a href="#" class="nav-item" data-section="tracking" onclick="showSection('tracking', this)">
+        <i class="fa-solid fa-truck-fast"></i><span>Tracking</span>
+      </a>
+      <a href="#" class="nav-item" data-section="inventory" onclick="showSection('inventory', this)">
+        <i class="fa-solid fa-boxes-stacked"></i><span>Inventory</span>
+        <span class="nav-badge danger" id="low-stock-badge">0</span>
+      </a>
+      <a href="#" class="nav-item" data-section="reports" onclick="showSection('reports', this)">
+        <i class="fa-solid fa-chart-line"></i><span>Reports</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar"><i class="fa-solid fa-user-doctor"></i></div>
+        <div>
+          <div class="user-name" id="desktop-username">Admin</div>
+          <div class="user-role">Pharmacist</div>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i></button>
+    </div>
+  </aside>
+
+  <!-- Main Content Area -->
+  <main class="main-content">
+
+    <!-- Header -->
+    <header class="dashboard-header">
+      <div class="header-left">
+        <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+        <div class="header-title" id="section-title">Point of Sale</div>
+      </div>
+      <div class="header-right">
+        <div class="header-time" id="header-time">--:--:--</div>
+        <button class="dark-mode-btn" onclick="toggleDarkMode()" title="Toggle dark mode">
+          <i class="fa-solid fa-moon" id="dark-icon"></i>
+        </button>
+        <div class="notification-bell" onclick="toggleNotifications()">
+          <i class="fa-solid fa-bell"></i>
+          <span class="notif-count" id="notif-count">0</span>
+        </div>
+        <div class="notification-panel hidden" id="notif-panel">
+          <div class="notif-header">
+            <span>Notifications</span>
+            <button onclick="clearNotifications()">Clear all</button>
+          </div>
+          <div class="notif-list" id="notif-list">
+            <div class="notif-empty">No notifications</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ===== SECTION: System ===== -->
+    <section class="section active" id="section-pos">
+      <div class="pos-layout">
+
+        <!-- Products Panel -->
+        <div class="pos-products-panel">
+          <div class="pos-toolbar">
+            <div class="search-box">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="pos-search" placeholder="Search medications..." oninput="filterPOSProducts()" />
+            </div>
+            <div class="category-filters" id="pos-category-filters"></div>
+          </div>
+          <div class="products-grid" id="pos-products-grid">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <!-- Cart Panel -->
+        <div class="pos-cart-panel">
+          <div class="cart-header">
+            <h3><i class="fa-solid fa-cart-shopping"></i> Current Order</h3>
+            <button class="btn-clear-cart" onclick="clearCart()"><i class="fa-solid fa-trash"></i></button>
+          </div>
+          <div class="cart-items" id="cart-items">
+            <div class="cart-empty" id="cart-empty">
+              <i class="fa-solid fa-cart-shopping"></i>
+              <p>Cart is empty</p>
+            </div>
+          </div>
+          <div class="cart-footer">
+            <div class="cart-summary">
+              <div class="summary-row"><span>Subtotal</span><span id="cart-subtotal">EGP 0.00</span></div>
+              <div class="summary-row"><span>Tax (14%)</span><span id="cart-tax">EGP 0.00</span></div>
+              <div class="summary-row total"><span>Total</span><span id="cart-total">EGP 0.00</span></div>
+            </div>
+            <div class="payment-method">
+              <label>Payment:</label>
+              <select id="payment-method">
+                <option value="cash">Cash</option>
+                <option value="card">Card</option>
+                <option value="insurance">Insurance</option>
+              </select>
+            </div>
+            <button class="btn-checkout" onclick="checkout()" id="checkout-btn" disabled>
+              <i class="fa-solid fa-check-circle"></i> Checkout
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== SECTION: ORDERS ===== -->
+    <section class="section" id="section-orders">
+      <div class="orders-stats" id="orders-stats-bar"></div>
+      <div class="kanban-board">
+        <div class="kanban-col">
+          <div class="kanban-col-header ordered">
+            <i class="fa-solid fa-clock"></i> Ordered
+            <span class="col-count" id="col-count-ordered">0</span>
+          </div>
+          <div class="kanban-items" id="kanban-ordered" ondragover="allowDrop(event)" ondrop="dropOrder(event,'preparing')"></div>
+        </div>
+        <div class="kanban-col">
+          <div class="kanban-col-header preparing">
+            <i class="fa-solid fa-flask"></i> Preparing
+            <span class="col-count" id="col-count-preparing">0</span>
+          </div>
+          <div class="kanban-items" id="kanban-preparing" ondragover="allowDrop(event)" ondrop="dropOrder(event,'out_for_delivery')"></div>
+        </div>
+        <div class="kanban-col">
+          <div class="kanban-col-header delivered">
+            <i class="fa-solid fa-circle-check"></i> Delivered
+            <span class="col-count" id="col-count-delivered">0</span>
+          </div>
+          <div class="kanban-items" id="kanban-delivered"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== SECTION: TRACKING ===== -->
+    <section class="section" id="section-tracking">
+      <div class="tracking-filters">
+        <button class="filter-btn active" onclick="filterTracking('all', this)">All</button>
+        <button class="filter-btn" onclick="filterTracking('pending', this)">Pending</button>
+        <button class="filter-btn" onclick="filterTracking('out_for_delivery', this)">Out for Delivery</button>
+        <button class="filter-btn" onclick="filterTracking('delivered', this)">Delivered</button>
+      </div>
+      <div class="tracking-grid" id="tracking-grid">
+        <!-- Populated by JS -->
+      </div>
+    </section>
+
+    <!-- ===== SECTION: INVENTORY ===== -->
+    <section class="section" id="section-inventory">
+      <div class="inventory-toolbar">
+        <div class="search-box">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="inv-search" placeholder="Search inventory..." oninput="filterInventory()" />
+        </div>
+        <button class="btn-primary" onclick="openInventoryModal()">
+          <i class="fa-solid fa-plus"></i> Add Medication
+        </button>
+      </div>
+      <div class="inventory-stats" id="inventory-stats"></div>
+      <div class="inventory-table-wrap">
+        <table class="inventory-table" id="inventory-table">
+          <thead>
+            <tr>
+              <th>Medication</th>
+              <th>Category</th>
+              <th>Price</th>
+              <th>Stock</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="inventory-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===== SECTION: REPORTS ===== -->
+    <section class="section" id="section-reports">
+      <div class="reports-kpis" id="reports-kpis"></div>
+      <div class="reports-row">
+        <div class="report-card">
+          <h3>Sales by Category</h3>
+          <div class="bar-chart" id="chart-category"></div>
+        </div>
+        <div class="report-card">
+          <h3>Daily Sales (Last 7 Days)</h3>
+          <div class="bar-chart" id="chart-daily"></div>
+        </div>
+      </div>
+      <div class="report-card full-width">
+        <h3>Recent Transactions</h3>
+        <table class="inventory-table" id="transactions-table">
+          <thead>
+            <tr><th>Order ID</th><th>Items</th><th>Total</th><th>Payment</th><th>Date</th><th>Status</th></tr>
+          </thead>
+          <tbody id="transactions-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </main><!-- end .main-content -->
+</div><!-- end #desktop-app -->
+
+
+<!-- ============================================================
+     MOBILE APP — Customer Interface
+============================================================ -->
+<div id="mobile-app" class="mobile-app hidden">
+
+  <!-- Mobile Header -->
+  <header class="mobile-header">
+    <div class="mobile-logo">
+      <i class="fa-solid fa-prescription-bottle-medical"></i>
+      <span id="mobile-page-title">PharmaPlus</span>
+    </div>
+    <div class="mobile-header-right">
+      <button class="dark-mode-btn" onclick="toggleDarkMode()">
+        <i class="fa-solid fa-moon" id="mobile-dark-icon"></i>
+      </button>
+      <button class="mobile-cart-btn" onclick="showMobilePage('cart')">
+        <i class="fa-solid fa-cart-shopping"></i>
+        <span class="cart-dot" id="mobile-cart-dot">0</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Mobile Pages Container -->
+  <div class="mobile-pages">
+
+    <!-- HOME PAGE -->
+    <div class="mobile-page active" id="mobile-home">
+      <div class="mobile-banner">
+        <div class="banner-text">
+          <div class="banner-greeting" id="mobile-greeting">Good morning 👋</div>
+          <div class="banner-sub">What do you need today?</div>
+        </div>
+        <i class="fa-solid fa-prescription-bottle-medical banner-icon"></i>
+      </div>
+      <div class="mobile-search-wrap">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="mobile-search-input" placeholder="Search medications..." oninput="mobileSearch()" onfocus="showMobilePage('search')" />
+      </div>
+      <div class="section-label">Categories</div>
+      <div class="category-chips" id="mobile-categories"></div>
+      <div class="section-label">Featured Medications</div>
+      <div class="mobile-products-grid" id="mobile-featured"></div>
+    </div>
+
+    <!-- SEARCH PAGE -->
+    <div class="mobile-page" id="mobile-search">
+      <div class="mobile-search-wrap">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="mobile-search-input2" placeholder="Search medications..." oninput="mobileSearchPage()" />
+        <button class="search-back" onclick="showMobilePage('home')"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="search-results-count" id="search-results-count">All medications</div>
+      <div class="mobile-products-grid" id="mobile-search-results"></div>
+    </div>
+
+    <!-- CART PAGE -->
+    <div class="mobile-page" id="mobile-cart">
+      <h2 class="mobile-page-heading">My Cart</h2>
+      <div class="mobile-cart-items" id="mobile-cart-items"></div>
+      <div class="mobile-cart-empty hidden" id="mobile-cart-empty">
+        <i class="fa-solid fa-cart-shopping"></i>
+        <p>Your cart is empty</p>
+        <button onclick="showMobilePage('home')" class="btn-primary">Browse Medications</button>
+      </div>
+      <div class="mobile-cart-footer" id="mobile-cart-footer">
+        <div class="mobile-summary">
+          <div class="summary-row"><span>Subtotal</span><span id="mob-subtotal">EGP 0.00</span></div>
+          <div class="summary-row"><span>Tax (14%)</span><span id="mob-tax">EGP 0.00</span></div>
+          <div class="summary-row total"><span>Total</span><span id="mob-total">EGP 0.00</span></div>
+        </div>
+        <div class="delivery-address">
+          <label><i class="fa-solid fa-location-dot"></i> Delivery Address</label>
+          <input type="text" id="delivery-address" placeholder="Enter your address..." />
+        </div>
+        <button class="btn-checkout full-width" onclick="mobileCheckout()" id="mob-checkout-btn">
+          <i class="fa-solid fa-truck-fast"></i> Place Order
+        </button>
+      </div>
+    </div>
+
+    <!-- ORDERS PAGE -->
+    <div class="mobile-page" id="mobile-orders">
+      <h2 class="mobile-page-heading">My Orders</h2>
+      <div class="mobile-orders-list" id="mobile-orders-list"></div>
+      <div class="mobile-orders-empty hidden" id="mobile-orders-empty">
+        <i class="fa-solid fa-clipboard-list"></i>
+        <p>No orders yet</p>
+        <button onclick="showMobilePage('home')" class="btn-primary">Start Shopping</button>
+      </div>
+    </div>
+
+    <!-- PRODUCT DETAIL PAGE (overlay) -->
+    <div class="mobile-page" id="mobile-product-detail">
+      <button class="detail-back" onclick="goBack()"><i class="fa-solid fa-arrow-left"></i> Back</button>
+      <div id="product-detail-content"></div>
+    </div>
+
+    <!-- ORDER DETAIL / TRACKING PAGE -->
+    <div class="mobile-page" id="mobile-order-tracking">
+      <button class="detail-back" onclick="goBack()"><i class="fa-solid fa-arrow-left"></i> My Orders</button>
+      <div id="order-tracking-content"></div>
+    </div>
+
+  </div><!-- end .mobile-pages -->
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <button class="bottom-nav-item active" data-page="home" onclick="showMobilePage('home')">
+      <i class="fa-solid fa-house"></i><span>Home</span>
+    </button>
+    <button class="bottom-nav-item" data-page="search" onclick="showMobilePage('search')">
+      <i class="fa-solid fa-magnifying-glass"></i><span>Search</span>
+    </button>
+    <button class="bottom-nav-item" data-page="cart" onclick="showMobilePage('cart')">
+      <i class="fa-solid fa-cart-shopping"></i><span>Cart</span>
+      <span class="bottom-badge" id="bottom-cart-badge">0</span>
+    </button>
+    <button class="bottom-nav-item" data-page="orders" onclick="showMobilePage('orders')">
+      <i class="fa-solid fa-clipboard-list"></i><span>Orders</span>
+    </button>
+  </nav>
+
+</div><!-- end #mobile-app -->
+
+
+<!-- ============================================================
+     INVENTORY MODAL
+============================================================ -->
+<div class="modal-overlay hidden" id="inventory-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-title">Add Medication</h3>
+      <button onclick="closeModal('inventory-modal')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form id="inventory-form" onsubmit="saveMedication(event)">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Name *</label>
+          <input type="text" id="med-name" required placeholder="Medication name" />
+        </div>
+        <div class="form-group">
+          <label>Category *</label>
+          <input type="text" id="med-category" required placeholder="e.g. Pain Relief" list="categories-list" />
+          <datalist id="categories-list"></datalist>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Price (EGP) *</label>
+          <input type="number" id="med-price" required min="0" step="0.01" placeholder="0.00" />
+        </div>
+        <div class="form-group">
+          <label>Stock Quantity *</label>
+          <input type="number" id="med-stock" required min="0" placeholder="0" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Min Stock Alert</label>
+          <input type="number" id="med-min-stock" min="0" placeholder="10" />
+        </div>
+        <div class="form-group">
+          <label>Barcode / SKU</label>
+          <input type="text" id="med-barcode" placeholder="MED001" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <textarea id="med-desc" rows="2" placeholder="Brief description..."></textarea>
+      </div>
+      <input type="hidden" id="med-id" value="" />
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" onclick="closeModal('inventory-modal')">Cancel</button>
+        <button type="submit" class="btn-primary" id="save-med-btn">Save Medication</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     ORDER DETAIL MODAL (Desktop)
+============================================================ -->
+<div class="modal-overlay hidden" id="order-detail-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Order Details</h3>
+      <button onclick="closeModal('order-detail-modal')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div id="order-detail-content"></div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('order-detail-modal')">Close</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     TOAST NOTIFICATIONS
+============================================================ -->
+<div class="toast-container" id="toast-container"></div>
+
+<script src="./JS/script.js"></script>
+</body>
+</html>
