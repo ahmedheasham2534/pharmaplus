@@ -108,14 +108,6 @@ Password: user123
 * Real-world business logic simulation
 * No external frameworks required
 
----
-
-## 📹 Demo Video
-
-👉 (Add your Loom video link here)
-
----
-
 ## 📬 Contact
 
 Ahmed Hisham
